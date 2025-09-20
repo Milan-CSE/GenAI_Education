@@ -9,7 +9,10 @@ from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 
-from user_profile import collect_user_profile
+# Note: Remove the import for switch_page_button, use built-in st.switch_page
+# Assumption: Move interview.py to a 'pages' folder in the same directory as this file.
+# Run the app with: streamlit run streamlit.py
+
 from engine.matcher import match_careers
 from engine.advisor import get_personalized_advice
 from engine.planner import generate_learning_plan
@@ -19,6 +22,28 @@ from github_extractor import extract_github_skills
 from ui_components import show_career_card
 from utils import clean_skills
 
+def collect_user_profile(prefill=None):
+    if prefill is None:
+        prefill = {}
+    name = st.text_input("Name", value=prefill.get("name", ""))
+    age = st.number_input("Age", min_value=18, max_value=99, value=prefill.get("age", 25), step=1)
+    gender_options = ["Male", "Female", "Prefer not to say"]
+    gender_index = gender_options.index(prefill.get("gender", "Prefer not to say")) if prefill.get("gender") in gender_options else 2
+    gender = st.selectbox("Gender", gender_options, index=gender_index)
+    education_options = ["High School", "Undergraduate", "Graduate", "Postgraduate", "PhD"]
+    education_index = education_options.index(prefill.get("education", "Graduate")) if prefill.get("education") in education_options else 2
+    education = st.selectbox("Education", education_options, index=education_index)
+    experience = st.number_input("Years of Experience", min_value=0, max_value=50, value=prefill.get("experience", 0), step=1)
+    career_goal = st.text_input("Career Goal", value=prefill.get("career_goal", ""))
+    return {
+        "name": name,
+        "age": age,
+        "gender": gender,
+        "education": education,
+        "experience": experience,
+        "career_goal": career_goal
+    }
+
 # ---------- Page setup ----------
 st.set_page_config(page_title="AI Career Advisor", page_icon="🎓", layout="wide", initial_sidebar_state="expanded")
 
@@ -27,15 +52,119 @@ st.markdown("""
 <style>
 :root {
   --primary: #4F46E5;
+  --secondary: #6366F1;
+  --accent: #A5B4FC;
   --muted: #6B7280;
+  --text: #1F2937;
   --card-bg: #FFFFFF;
-  --page-bg: #F8FAFC;
+  --page-bg: linear-gradient(135deg, #F8FAFC 0%, #E0E7FF 100%);
+  --shadow: 0 10px 30px rgba(15,23,42,0.1);
+  --border-radius: 16px;
+  --transition: all 0.3s ease;
 }
-body { background-color: var(--page-bg); }
-.app-title { font-size:34px; font-weight:800; color:var(--primary); text-align:center; margin-bottom:4px; }
-.app-sub { text-align:center; color:var(--muted); margin-bottom:18px; }
-.role-card { border-radius:14px; padding:16px; background:var(--card-bg); box-shadow: 0 6px 20px rgba(15,23,42,0.06); }
-.small { font-size:13px; color:var(--muted); }
+body { 
+  background: var(--page-bg); 
+  font-family: 'Inter', sans-serif;
+}
+.app-title { 
+  font-size: 42px; 
+  font-weight: 900; 
+  background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-align: center; 
+  margin-bottom: 8px; 
+  letter-spacing: -0.5px;
+}
+.app-sub { 
+  text-align: center; 
+  color: var(--muted); 
+  margin-bottom: 24px; 
+  font-size: 18px;
+  font-weight: 500;
+}
+.role-card { 
+  border-radius: var(--border-radius); 
+  padding: 24px; 
+  background: var(--card-bg); 
+  box-shadow: var(--shadow); 
+  transition: var(--transition);
+  cursor: pointer;
+}
+.role-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(15,23,42,0.15);
+}
+.small { 
+  font-size: 14px; 
+  color: var(--muted); 
+  font-weight: 400;
+}
+.stButton > button {
+  width: 100%;
+  border-radius: var(--border-radius);
+  background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+  color: white;
+  font-weight: 600;
+  padding: 12px 24px;
+  border: none;
+  transition: var(--transition);
+}
+.stButton > button:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+.stTextInput > div > div > input {
+  border-radius: var(--border-radius);
+  border: 1px solid var(--accent);
+  padding: 12px;
+  transition: var(--transition);
+}
+.stTextInput > div > div > input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+}
+.stFileUploader > div > button {
+  border-radius: var(--border-radius);
+  background: var(--accent);
+  color: var(--text);
+  font-weight: 500;
+}
+.stSpinner > div {
+  color: var(--primary);
+}
+.card {
+  border-radius: var(--border-radius);
+  padding: 16px;
+  background: linear-gradient(135deg, #FFFFFF 0%, #F9FAFB 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 1px 2px rgba(0,0,0,0.05);
+}
+.match-score {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+.role-about {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.5;
+}
+.stDivider {
+  margin: 24px 0;
+  border-color: var(--accent);
+}
+.stExpander {
+  border-radius: var(--border-radius);
+  border: 1px solid var(--accent);
+  overflow: hidden;
+}
+.stExpander > summary {
+  padding: 16px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--card-bg);
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -246,7 +375,7 @@ else:
 
 
 # Skills input (single-line, comma separated)
-skills_input = st.text_input("Your Skills (comma separated)", placeholder="Python, SQL, Machine Learning", value=", ".join(profile.get("skills", [])))
+skills_input = st.text_input("Your Skills", placeholder="Python, SQL, Machine Learning", value=", ".join(profile.get("skills", [])))
 user_skills = clean_skills([s for s in skills_input.split(",") if s.strip()])
 profile["skills"] = user_skills
 
@@ -284,20 +413,30 @@ if analyze:
         with result_holder:
             st.subheader("📌 Top 3 Career Matches")
             cols = st.columns(3)
+
             for i, m in enumerate(matches[:3]):
+                role = m["role"]
+
                 with cols[i]:
-                    show_career_card(m["role"], m["match"], m["about"], m.get("missing", []))
+                    # -------- Clickable card (button triggers navigation) --------
+                    if st.button(f"🎯 {role}", key=f"role_card_{i}"):
+                        st.session_state["chosen_career"] = role
+                        st.switch_page("interview.py")   # Changed to built-in st.switch_page, assuming pages/interview.py
 
-                    # Learning plan expander (mock by default)
-                    with st.expander(f"📚 View Learning Plan — {m['role']}", expanded=False):
-                        if enable_gemini:
-                            # call real planner once (optional)
-                            plan = generate_learning_plan(profile.get("skills", []), m["role"])
-                            st.write(plan)
-                        else:
-                            mock_plan = [f"Week {w+1}: Study {topic}" for w, topic in enumerate((m.get("missing") or ["python", "sql"]))][:12]
-                            st.write("\n".join([f"{i+1}. {step}" for i, step in enumerate(mock_plan)]))
+                    # -------- Pretty card display --------
+                    st.markdown(
+                        f"""
+                        <div class="role-card">
+                            <div class="match-score">Match: {m['match']}%</div>
+                            <div class="role-about">{m['about'][:120]}...</div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
 
+        # Removed the query_params check as it's unnecessary with the button navigation
+
+                    
         # ---------- Personalized Advice (mock or Gemini one-time) ----------
         with advice_holder:
             st.subheader("✨ Personalized AI Career Guidance")
