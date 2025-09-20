@@ -1,5 +1,8 @@
 import streamlit as st
 from io import BytesIO
+import pdfplumber
+import re
+import json
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
@@ -41,15 +44,15 @@ sample_choice = st.sidebar.selectbox("Pick a sample profile", ["None", "Alice (D
 SAMPLES = {
     "Alice (Data Scientist)": {
         "name": "Alice", "age": 24, "gender": "Female", "education": "Graduate",
-        "experience": 1, "career_goal": "Data Scientist", "interests": ["AI","Data"], "skills": ["python","sql","statistics"]
+        "experience": 1, "career_goal": "Data Scientist", "skills": ["python","sql","statistics"]
     },
     "Bob (AI Engineer)": {
         "name": "Bob", "age": 28, "gender": "Male", "education": "Postgraduate",
-        "experience": 4, "career_goal": "AI Engineer", "interests": ["Deep Learning","NLP"], "skills": ["python","deep learning","tensorflow"]
+        "experience": 4, "career_goal": "AI Engineer", "skills": ["python","deep learning","tensorflow"]
     },
     "Charlie (Career Switcher)": {
         "name": "Charlie", "age": 35, "gender": "Male", "education": "Postgraduate",
-        "experience": 10, "career_goal": "Product Manager", "interests": ["Business","AI"], "skills": ["communication","excel","strategy"]
+        "experience": 10, "career_goal": "Product Manager",  "skills": ["communication","excel","strategy"]
     }
 }
 
@@ -66,14 +69,75 @@ st.markdown("<div class='app-title'>🎯 AI Career & Skills Advisor</div>", unsa
 st.markdown("<div class='app-sub'>Map your skills → roles → step-by-step roadmap</div>", unsafe_allow_html=True)
 st.divider()
 
+# Load your skills database (JSON file)
+with open("skills_database.json", "r") as f:
+    SKILL_DB = json.load(f)   # Example: ["python", "c++", "tensorflow", "machine learning", "sql", "excel"]
+
+def detect_skills(text: str, skills_db: list[str]) -> list[str]:
+    """
+    Detect skills from resume text using regex (case-insensitive).
+    Allows flexible matches (e.g., 'C++', 'TensorFlow 2.0', 'machine-learning').
+    """
+    text_lower = text.lower()
+    found = []
+
+    for skill in skills_db:
+        # Build regex pattern for each skill
+        # \b ensures word boundaries (exact match)
+        # also allow hyphen/space variations (e.g., "machine-learning")
+        pattern = r"\b" + re.escape(skill.lower()).replace(r"\ ", r"[\s-]") + r"\b"
+
+        if re.search(pattern, text_lower, flags=re.IGNORECASE):
+            found.append(skill.lower())
+
+    return found
+
+
+# ---------- Resume Upload ----------
+st.subheader("📄 Upload Resume (optional)")
+uploaded_resume = st.file_uploader("Upload your resume as PDF", type=["pdf"])
+
+parsed_profile = None
+if uploaded_resume is not None:
+    with pdfplumber.open(uploaded_resume) as pdf:
+        text = "\n".join(page.extract_text() or "" for page in pdf.pages)
+
+    # Detect skills using regex
+    detected_skills = detect_skills(text, SKILL_DB)
+
+    parsed_profile = {
+        "name": text.split("\n")[0] if text else "Unknown",
+        "age": 25,   # placeholder
+        "gender": "Prefer not to say",
+        "education": "Graduate",
+        "experience": 0,
+        "career_goal": "Not specified",
+        "skills": detected_skills
+    }
+
+    st.success("Resume uploaded & parsed successfully! ✅")
+    st.json(parsed_profile)
+
+    st.session_state["profile"] = parsed_profile
+
 # ---------- Profile form ----------
-# Use session_state profile if loaded from sample, otherwise show form
+if parsed_profile:  # Resume was uploaded
+    profile = parsed_profile
+
+# Priority order: Resume → Sample → Manual 
 if "profile" in st.session_state:
-    # Show summary and allow edit if user wants
-    with st.expander("👤 Edit loaded profile", expanded=False):
-        profile = collect_user_profile(prefill=st.session_state.get("profile"))
+    prefill = st.session_state.get("profile", {})
+    source = "Sample" if st.session_state.get("profile_from") == "sample" else "Resume"
+    with st.expander(f"👤 Edit loaded profile ({source})", expanded=True):
+        profile = collect_user_profile(prefill=prefill)
+
+        # ✅ Preserve skills after manual form fill
+        if "skills" in prefill:
+            profile["skills"] = prefill["skills"]
 else:
     profile = collect_user_profile()
+
+
 
 # Skills input (single-line, comma separated)
 skills_input = st.text_input("Your Skills (comma separated)", placeholder="Python, SQL, Machine Learning", value=", ".join(profile.get("skills", [])))

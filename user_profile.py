@@ -15,14 +15,13 @@ def collect_user_profile(prefill: dict | None = None) -> dict:
         name = st.text_input("Full Name", value=prefill.get("name", ""))
         age = st.number_input("Age", min_value=10, max_value=80, step=1, value=prefill.get("age", 22))
         gender = st.selectbox("Gender", ["Prefer not to say", "Male", "Female", "Other"], index=0 if not prefill.get("gender") else ["Prefer not to say","Male","Female","Other"].index(prefill.get("gender")))
-        interests = st.text_input("Interests (comma separated)", placeholder="AI, Robotics, Finance", value=", ".join(prefill.get("interests", [])))
+        
 
     with col2:
         education = st.selectbox("Education Level", ["High School", "Undergraduate", "Graduate", "Postgraduate", "Other"], index=0 if not prefill.get("education") else ["High School","Undergraduate","Graduate","Postgraduate","Other"].index(prefill.get("education")))
         experience = st.slider("Years of Experience", 0, 30, value=prefill.get("experience", 0))
         career_goal = st.text_input("Career Goal (e.g. AI Engineer)", value=prefill.get("career_goal", ""))
 
-    interests_list = [i.strip() for i in interests.split(",") if i.strip()]
 
     profile = {
         "name": name,
@@ -31,7 +30,7 @@ def collect_user_profile(prefill: dict | None = None) -> dict:
         "education": education,
         "experience": experience,
         "career_goal": career_goal,
-        "interests": interests_list,
+        
         # skills will be attached in streamlit main after skills input
     }
 
