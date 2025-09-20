@@ -1,5 +1,4 @@
-import google.generativeai as genai
-
+# engine/matcher.py
 CAREERS = [
     {
         "role": "Data Scientist",
@@ -25,10 +24,11 @@ CAREERS = [
 
 def match_careers(user_skills: list[str]) -> list[dict]:
     matches = []
+    user_skills_set = set([s.lower() for s in user_skills])
     for c in CAREERS:
-        have = len([s for s in c["skills"] if s in user_skills])
+        have = len([s for s in c["skills"] if s.lower() in user_skills_set])
         match_score = int((have / len(c["skills"])) * 100)
-        missing = [s for s in c["skills"] if s not in user_skills]
+        missing = [s for s in c["skills"] if s.lower() not in user_skills_set]
         matches.append({
             "role": c["role"],
             "match": match_score,
