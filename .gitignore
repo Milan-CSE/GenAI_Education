@@ -1,0 +1,11 @@
+/__pycache__/
+
+/venv/
+/.streamlit/
+
+morning-jarvis-c553e1d3f9b5.json
+
+.vscode/
+
+*.pyc
+

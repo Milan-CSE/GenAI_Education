@@ -1,0 +1,5 @@
+role_id,resource_type,title,url,duration
+ml_engineer,course,Intro to Machine Learning,https://www.coursera.org/learn/machine-learning,4 weeks
+ml_engineer,youtube,Build ML Models with Python,https://www.youtube.com/watch?v=7eh4d6sabA0,2 hours
+data_analyst,course,Data Analysis with Python,https://www.coursera.org/learn/data-analysis-with-python,3 weeks
+product_manager,article,AI Product Management Guide,https://hbr.org/pm-ai-guide,15 min
