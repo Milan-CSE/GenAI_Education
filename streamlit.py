@@ -3,6 +3,8 @@ from io import BytesIO
 import pdfplumber
 import re
 import json
+import requests
+
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
@@ -11,6 +13,8 @@ from user_profile import collect_user_profile
 from engine.matcher import match_careers
 from engine.advisor import get_personalized_advice
 from engine.planner import generate_learning_plan
+
+from github_extractor import extract_github_skills
 
 from ui_components import show_career_card
 from utils import clean_skills
@@ -34,6 +38,8 @@ body { background-color: var(--page-bg); }
 .small { font-size:13px; color:var(--muted); }
 </style>
 """, unsafe_allow_html=True)
+
+
 
 # ---------- Sidebar: samples + settings ----------
 st.sidebar.header("⚙️ Settings & Samples")
@@ -69,6 +75,8 @@ st.markdown("<div class='app-title'>🎯 AI Career & Skills Advisor</div>", unsa
 st.markdown("<div class='app-sub'>Map your skills → roles → step-by-step roadmap</div>", unsafe_allow_html=True)
 st.divider()
 
+
+
 # Load your skills database (JSON file)
 with open("skills_database.json", "r") as f:
     SKILL_DB = json.load(f)   # Example: ["python", "c++", "tensorflow", "machine learning", "sql", "excel"]
@@ -93,9 +101,80 @@ def detect_skills(text: str, skills_db: list[str]) -> list[str]:
     return found
 
 
+
+#-----------extract skills from GitHub ----------
+
+def extract_github_skills(username: str, skills_db: list[str]) -> list[str]:
+    """
+    Extracts skills from a user's GitHub repos using GitHub API.
+    Looks at repo languages + topics, and cross-matches with skills_db.
+    """
+    skills_found = set()
+    headers = {"Accept": "application/vnd.github.mercy-preview+json"}  # enable topics API
+
+    repos_url = f"https://api.github.com/users/{username}/repos"
+    repos = requests.get(repos_url, headers=headers).json()
+
+    if isinstance(repos, dict) and repos.get("message"):
+        return []
+
+    for repo in repos:
+        # Languages
+        lang_url = repo.get("languages_url")
+        if lang_url:
+            langs = requests.get(lang_url, headers=headers).json()
+            for lang in langs.keys():
+                lang_norm = lang.lower()
+                # map special cases
+                if lang_norm in ["jupyter notebook"]:
+                    lang_norm = "python"
+                if lang_norm in [s.lower() for s in skills_db]:
+                    skills_found.add(lang_norm)
+
+        # Topics
+        for topic in repo.get("topics", []):
+            topic_norm = topic.lower()
+            if topic_norm in [s.lower() for s in skills_db]:
+                skills_found.add(topic_norm)
+
+    return list(skills_found)
+
+
+
+
 # ---------- Resume Upload ----------
 st.subheader("📄 Upload Resume (optional)")
 uploaded_resume = st.file_uploader("Upload your resume as PDF", type=["pdf"])
+
+
+
+# ---------- GitHub Input ----------
+st.subheader("🌐 Import from GitHub (optional)")
+github_username = st.text_input("Enter your GitHub username")
+
+# Initialize empty list so it's always defined
+github_skills = []
+
+if github_username:
+    with st.spinner("Fetching skills from GitHub..."):
+        try:
+            github_skills = extract_github_skills(github_username, SKILL_DB)
+            if github_skills:
+                st.success(f"✅ Found {len(github_skills)} skills from GitHub!")
+                st.write(", ".join(github_skills))
+                # Merge into profile
+                if "profile" not in st.session_state:
+                    st.session_state["profile"] = {}
+                st.session_state["profile"]["skills"] = list(
+                    set(st.session_state["profile"].get("skills", [])) | set(github_skills)
+                )
+            else:
+                st.warning("No matching skills found in GitHub profile.")
+        except Exception as e:
+            st.error(f"Error fetching GitHub data: {e}")
+
+
+
 
 parsed_profile = None
 if uploaded_resume is not None:
@@ -104,6 +183,7 @@ if uploaded_resume is not None:
 
     # Detect skills using regex
     detected_skills = detect_skills(text, SKILL_DB)
+
 
     parsed_profile = {
         "name": text.split("\n")[0] if text else "Unknown",
@@ -120,18 +200,44 @@ if uploaded_resume is not None:
 
     st.session_state["profile"] = parsed_profile
 
-# ---------- Profile form ----------
-if parsed_profile:  # Resume was uploaded
-    profile = parsed_profile
 
-# Priority order: Resume → Sample → Manual 
-if "profile" in st.session_state:
+
+# ---------- Profile form ----------
+merged_profile = {}
+
+
+
+# Merge Resume + GitHub if both available
+if parsed_profile and github_skills:
+    merged_profile = {**parsed_profile}
+    merged_profile["skills"] = list(set(parsed_profile.get("skills", []) + github_skills))
+elif parsed_profile:
+    merged_profile = parsed_profile
+elif github_skills:
+    merged_profile = {
+        "name": st.session_state.get("profile", {}).get("name", "Unknown"),
+        "age": 25,  # placeholder
+        "gender": "Prefer not to say",
+        "education": "Graduate",
+        "experience": 0,
+        "career_goal": "Not specified",
+        "skills": github_skills
+    }
+
+
+
+# Priority order: Resume+GitHub → Resume → GitHub → Sample → Manual 
+if merged_profile:
+    prefill = merged_profile
+    with st.expander("👤 Edit loaded profile (Resume/GitHub)", expanded=True):
+        profile = collect_user_profile(prefill=prefill)
+        if "skills" in prefill:
+            profile["skills"] = prefill["skills"]
+elif "profile" in st.session_state:
     prefill = st.session_state.get("profile", {})
-    source = "Sample" if st.session_state.get("profile_from") == "sample" else "Resume"
+    source = "Sample" if st.session_state.get("profile_from") == "sample" else "Manual"
     with st.expander(f"👤 Edit loaded profile ({source})", expanded=True):
         profile = collect_user_profile(prefill=prefill)
-
-        # ✅ Preserve skills after manual form fill
         if "skills" in prefill:
             profile["skills"] = prefill["skills"]
 else:

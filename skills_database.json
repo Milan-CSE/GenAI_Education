@@ -1,19 +1,38 @@
 [
-  "python", "java", "c", "c++", "c#", "javascript", "typescript", "go", "rust", "php", "ruby", "swift", "kotlin", "matlab", "r", "scala",
-  "sql", "nosql", "mysql", "postgresql", "mongodb", "oracle", "sqlite",
+  "python", "java", "c", "c++", "c#", "javascript", "typescript", "go", "rust", "php", "ruby", "swift", "kotlin", "matlab", "r", "scala", "perl", "objective-c",
+  
+  "sql", "nosql", "mysql", "postgresql", "mongodb", "oracle", "sqlite", "redis", "cassandra", "elasticsearch", "dynamodb", "couchdb",
   
   "machine learning", "deep learning", "artificial intelligence", "ai", "ml", "dl",
-  "tensorflow", "keras", "pytorch", "scikit-learn", "xgboost", "lightgbm",
-  "natural language processing", "nlp", "computer vision", "reinforcement learning", "transformers",
+  "tensorflow", "keras", "pytorch", "scikit-learn", "xgboost", "lightgbm", "theano", "mxnet",
+  "natural language processing", "nlp", "computer vision", "reinforcement learning", "transformers", "huggingface",
+  
+  "data science", "data analysis", "data mining", "data engineering", "big data", "spark", "hadoop", "snowflake", "databricks",
   
   "html", "css", "bootstrap", "tailwind", "react", "vue", "angular", "svelte",
-  "node.js", "express.js", "django", "flask", "fastapi", "spring boot", "dotnet", "laravel",
+  "node.js", "express.js", "django", "flask", "fastapi", "spring boot", "dotnet", "laravel", "symfony", "rails",
+  
+  "api development", "graphql", "rest api", "grpc",
+  
+  "mobile development", "android", "ios", "react native", "flutter", "ionic",
   
   "cloud computing", "aws", "azure", "google cloud", "gcp", "devops", "docker", "kubernetes",
-  "linux", "bash", "shell scripting", "git", "github", "gitlab", "ci/cd",
+  "terraform", "ansible", "jenkins", "ci/cd", "git", "github", "gitlab", "bitbucket", "version control",
   
-  "excel", "powerbi", "tableau", "data visualization", "statistics", "probability",
-  "business analysis", "project management", "scrum", "agile", "jira", "confluence",
+  "linux", "bash", "shell scripting", "powershell", "windows server", "networking",
   
-  "communication", "leadership", "critical thinking", "problem solving", "time management", "teamwork"
+  "cybersecurity", "penetration testing", "ethical hacking", "cryptography", "firewalls", "siem", "incident response", "cloud security",
+  
+  "excel", "powerbi", "tableau", "data visualization", "statistics", "probability", "sas", "stata", "alteryx",
+  
+  "business analysis", "product management", "project management", "scrum", "agile", "kanban", "jira", "confluence", "notion", "trello",
+  
+  "finance", "accounting", "investment", "stock trading", "risk management", "financial modeling",
+  
+  "marketing", "seo", "sem", "social media", "digital marketing", "content writing", "copywriting", "branding",
+  
+  "ui/ux design", "figma", "adobe xd", "sketch", "wireframing", "prototyping", "graphic design", "photoshop", "illustrator",
+  
+  "communication", "leadership", "critical thinking", "problem solving", "time management", "teamwork", "adaptability",
+  "negotiation", "creativity", "emotional intelligence", "public speaking", "collaboration"
 ]
