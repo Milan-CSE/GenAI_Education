@@ -53,6 +53,7 @@ SAMPLES = {
     }
 }
 
+
 if sample_choice != "None":
     st.sidebar.success(f"Loaded sample: {sample_choice}")
     st.session_state["profile"] = SAMPLES[sample_choice]
