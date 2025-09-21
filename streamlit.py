@@ -418,10 +418,11 @@ if analyze:
                 role = m["role"]
 
                 with cols[i]:
-                    # -------- Clickable card (button triggers navigation) --------
+                    # Use button to navigate to interview page
+
                     if st.button(f"🎯 {role}", key=f"role_card_{i}"):
                         st.session_state["chosen_career"] = role
-                        st.switch_page("interview.py")   # Changed to built-in st.switch_page, assuming pages/interview.py
+                        st.switch_page("pages/interview.py")
 
                     # -------- Pretty card display --------
                     st.markdown(
