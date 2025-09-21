@@ -1,4 +1,4 @@
-import app as st
+import streamlit as st
 import random
 
 # ---------- PAGE CONFIG ----------
@@ -192,4 +192,4 @@ else:
 
     with col2:
         if st.button("⬅️ Back to Career Advisor"):
-            st.switch_page("streamlit.py")
+            st.switch_page("streamlit_app.py")

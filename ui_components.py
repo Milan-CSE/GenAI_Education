@@ -1,4 +1,4 @@
-import app as st
+import streamlit as st
 
 def show_career_card(title, match_score, description, missing_skills):
     st.markdown(f"""

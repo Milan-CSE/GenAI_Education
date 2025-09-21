@@ -1,4 +1,4 @@
-import app as st
+import streamlit as st
 from io import BytesIO
 import pdfplumber
 import re
@@ -9,14 +9,10 @@ from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 
-# Note: Remove the import for switch_page_button, use built-in st.switch_page
-# Assumption: Move interview.py to a 'pages' folder in the same directory as this file.
-# Run the app with: streamlit run streamlit.py
-
 from engine.matcher import match_careers
 from engine.advisor import get_personalized_advice
 from engine.planner import generate_learning_plan
-
+from user_profile import collect_user_profile
 from github_extractor import extract_github_skills
 
 from ui_components import show_career_card
