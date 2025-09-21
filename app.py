@@ -1,4 +1,4 @@
-import streamlit as st
+import app as st
 from io import BytesIO
 import pdfplumber
 import re

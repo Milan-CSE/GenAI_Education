@@ -1,4 +1,4 @@
-import streamlit as st
+import app as st
 import random
 
 # ---------- PAGE CONFIG ----------

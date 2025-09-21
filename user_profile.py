@@ -1,4 +1,4 @@
-import streamlit as st
+import app as st
 
 def collect_user_profile(prefill: dict | None = None) -> dict:
     """
