@@ -1,8 +1,6 @@
 import streamlit as st
 import random
 
-# ---------- PAGE CONFIG ----------
-st.set_page_config(page_title="AI Mock Interview", page_icon="🧠", layout="wide")
 
 # ---------- STYLING (Matches streamlit.py and styles the question container) ----------
 st.markdown("""
@@ -165,6 +163,9 @@ else:
     total_questions = len(st.session_state.get("questions", []))
     if total_questions > 0:
         final_score = (st.session_state.score / total_questions) * 100
+
+        # --- Save score to session state ---
+        st.session_state.final_score = final_score
         
         st.success(f"✅ Interview Completed! Your final score is: **{final_score:.1f}%**")
         
@@ -179,13 +180,18 @@ else:
             else:
                 st.write("Keep practicing! Reviewing the fundamentals will help a lot.")
 
+        st.markdown("---")
+        if st.button("🚀 Get My Personalized Learning Plan", type="primary"):
+            st.switch_page("pages/courses.py")
+        st.markdown("---")
+
         st.balloons()
 
     # --- Controls to retry or go back ---
     col1, col2 = st.columns(2)
     with col1:
         if st.button("🔄 Take Another Interview"):
-            for key in ["interview_started", "q_index", "score", "user_answers", "questions"]:
+            for key in ["interview_started", "q_index", "score", "user_answers", "questions", "final_score"]:
                 if key in st.session_state:
                     del st.session_state[key]
             st.rerun()

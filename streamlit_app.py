@@ -110,6 +110,14 @@ body {
   opacity: 0.9;
   transform: translateY(-2px);
 }
+
+.st-emotion-cache-1r4qj8v {
+    background-color: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+}
 .stTextInput > div > div > input {
   border-radius: var(--border-radius);
   border: 1px solid var(--accent);
@@ -197,7 +205,7 @@ st.sidebar.markdown("Built with Streamlit • Local mock AI by default")
 
 # ---------- Top header ----------
 st.markdown("<div class='app-title'>🎯 AI Career & Skills Advisor</div>", unsafe_allow_html=True)
-st.markdown("<div class='app-sub'>Map your skills → roles → step-by-step roadmap</div>", unsafe_allow_html=True)
+st.markdown("<div class='app-sub'>Map your skills → roles → step-by-step career roadmap</div>", unsafe_allow_html=True)
 st.divider()
 
 
@@ -268,14 +276,19 @@ def extract_github_skills(username: str, skills_db: list[str]) -> list[str]:
 
 
 # ---------- Resume Upload ----------
-st.subheader("📄 Upload Resume (optional)")
+st.subheader("📄 Upload Resume")
 uploaded_resume = st.file_uploader("Upload your resume as PDF", type=["pdf"])
 
 
 
 # ---------- GitHub Input ----------
-st.subheader("🌐 Import from GitHub (optional)")
-github_username = st.text_input("Enter your GitHub username")
+with st.container(border=True):
+    st.subheader("🌐 Import from GitHub (optional)")
+    github_username = st.text_input(
+        "Enter your GitHub username to extract technical skills.", 
+        placeholder="e.g., octocat", 
+        label_visibility="collapsed"
+    )
 
 # Initialize empty list so it's always defined
 github_skills = []
@@ -321,9 +334,7 @@ if uploaded_resume is not None:
     }
 
     st.success("Resume uploaded & parsed successfully! ✅")
-    st.json(parsed_profile)
-
-    st.session_state["profile"] = parsed_profile
+    
 
 
 
@@ -414,24 +425,29 @@ if analyze:
                 role = m["role"]
 
                 with cols[i]:
-                    # Use button to navigate to interview page
+                    
+                    # Use a container to group the button and the card content
+                    with st.container():
 
-                    if st.button(f"🎯 {role}", key=f"role_card_{i}"):
-                        st.session_state["chosen_career"] = role
-                        st.switch_page("pages/interview.py")
+                        # The button now contains all the card's visual elements
+                        if st.button(
+                            label=f"🎯 {role}",
+                            key=f"role_card_{i}",
+                            use_container_width=True
+                        ):
+                            st.session_state["chosen_career"] = role
+                            st.switch_page("pages/1_interview.py")
 
-                    # -------- Pretty card display --------
-                    st.markdown(
-                        f"""
-                        <div class="role-card">
-                            <div class="match-score">Match: {m['match']}%</div>
-                            <div class="role-about">{m['about'][:120]}...</div>
-                        </div>
-                        """,
-                        unsafe_allow_html=True,
-                    )
-
-        # Removed the query_params check as it's unnecessary with the button navigation
+                        # -------- card display --------
+                        st.markdown(
+                            f"""
+                            <div class="role-card">
+                                <div class="match-score">Match: {m['match']}%</div>
+                                <div class="role-about">{m['about'][:120]}...</div>
+                            </div>
+                            """,
+                            unsafe_allow_html=True,
+                        )       
 
                     
         # ---------- Personalized Advice (mock or Gemini one-time) ----------
